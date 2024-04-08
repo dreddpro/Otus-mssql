@@ -1,2 +1,3 @@
 # Otus-mssql
-Курс по MSSQL
+Домашние задания курса OTUS "MS SQL Server Developer".
+Группа 2024-01.
