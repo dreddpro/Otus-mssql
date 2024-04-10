@@ -24,7 +24,12 @@ USE WideWorldImporters
 Таблицы: Warehouse.StockItems.
 */
 
-напишите здесь свое решение
+SELECT t.StockItemID
+	  ,t.StockItemName
+	  , *
+FROM Warehouse.StockItems t
+WHERE t.StockItemName LIKE '%urgent%' OR
+	  t.StockItemName LIKE 'Animal%'
 
 /*
 2. Поставщиков (Suppliers), у которых не было сделано ни одного заказа (PurchaseOrders).
@@ -34,7 +39,10 @@ USE WideWorldImporters
 По каким колонкам делать JOIN подумайте самостоятельно.
 */
 
-напишите здесь свое решение
+SELECT s.SupplierID, s.SupplierName
+FROM Purchasing.Suppliers as s
+LEFT JOIN Purchasing.PurchaseOrders as p ON s.SupplierID = p.SupplierID
+WHERE p.PurchaseOrderID is NULL
 
 /*
 3. Заказы (Orders) с ценой товара (UnitPrice) более 100$ 
@@ -55,7 +63,20 @@ USE WideWorldImporters
 Таблицы: Sales.Orders, Sales.OrderLines, Sales.Customers.
 */
 
-напишите здесь свое решение
+SELECT o.OrderID
+	  ,CONVERT(varchar, o.OrderDate, 104) as [Дата]
+	  ,FORMAT(o.OrderDate, 'MMMM', 'ru-ru') as [Месяц]
+	  ,datepart(quarter, o.OrderDate) as [Квартал]
+	  ,CEILING(month(o.OrderDate)/4.0) as [Треть]
+	  ,c.CustomerName
+FROM Sales.Orders as o
+LEFT JOIN Sales.OrderLines as ol ON o.OrderID = ol.OrderID
+LEFT JOIN Sales.Customers as c ON o.CustomerID = c.CustomerID
+WHERE (ol.UnitPrice > 100 OR ol.Quantity > 20) AND o.PickingCompletedWhen IS NOT NULL
+ORDER BY [Квартал], [Треть], [Дата]
+OFFSET 1000 ROWS
+FETCH NEXT 100 ROWS ONLY
+
 
 /*
 4. Заказы поставщикам (Purchasing.Suppliers),
@@ -71,7 +92,17 @@ USE WideWorldImporters
 Таблицы: Purchasing.Suppliers, Purchasing.PurchaseOrders, Application.DeliveryMethods, Application.People.
 */
 
-напишите здесь свое решение
+SELECT d.DeliveryMethodName
+	,p.ExpectedDeliveryDate
+	,s.SupplierName
+	,pl.PreferredName
+FROM Purchasing.Suppliers as s
+LEFT JOIN Purchasing.PurchaseOrders as p ON s.SupplierID = p.SupplierID
+LEFT JOIN Application.DeliveryMethods as d ON p.DeliveryMethodID = d.DeliveryMethodID
+LEFT JOIN Application.People as pl ON p.ContactPersonID = pl.PersonID
+WHERE (p.ExpectedDeliveryDate BETWEEN '2013-01-01' AND '2013-01-31'
+AND d.DeliveryMethodName IN ('Air Freight', 'Refrigerated Air Freight'))
+AND p.IsOrderFinalized = 1
 
 /*
 5. Десять последних продаж (по дате продажи) с именем клиента и именем сотрудника,
@@ -79,7 +110,14 @@ USE WideWorldImporters
 Сделать без подзапросов.
 */
 
-напишите здесь свое решение
+SELECT TOP (10)
+	c.CustomerName
+	,pp.FullName
+	,o.OrderDate
+FROM Sales.Orders as o
+LEFT JOIN Sales.Customers as c ON o.CustomerID = c.CustomerID
+LEFT JOIN Application.People as pp ON o.SalespersonPersonID = pp.PersonID
+ORDER BY o.OrderDate DESC
 
 /*
 6. Все ид и имена клиентов и их контактные телефоны,
@@ -87,4 +125,11 @@ USE WideWorldImporters
 Имя товара смотреть в таблице Warehouse.StockItems.
 */
 
-напишите здесь свое решение
+SELECT c.CustomerID
+	,c.CustomerName
+	,c.PhoneNumber
+FROM Sales.Orders as o
+INNER JOIN Sales.OrderLines as ol ON o.OrderID = ol.OrderID
+INNER JOIN Warehouse.StockItems as si ON ol.StockItemID = si.StockItemID
+LEFT JOIN Sales.Customers as c ON o.CustomerID = c.CustomerID
+WHERE si.StockItemName = 'Chocolate frogs 250g'
