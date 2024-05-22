@@ -115,7 +115,7 @@ WHERE S.SalesMIN IS NOT NULL
 */
 
 SELECT DISTINCT Cit.CityID, CityName, 
-	(SELECT DISTINCT FullName
+	(SELECT FullName
 	FROM Application.People 
 	WHERE People.PersonID = I.PackedByPersonID) AS FullName
 FROM Sales.Invoices I
@@ -164,28 +164,6 @@ FROM Sales.Invoices
 ORDER BY TotalSumm DESC
 
 
-
-SELECT 
-	I.InvoiceID, 
-	I.InvoiceDate,
-	P.FullName AS SalesPersonName,
-	SalesTotals.TotalSumm AS TotalSummByInvoice, 
-	(SELECT SUM(OrderLines.PickedQuantity*OrderLines.UnitPrice)
-		FROM Sales.OrderLines
-		WHERE OrderLines.OrderId = (SELECT Orders.OrderId 
-			FROM Sales.Orders
-			WHERE Orders.PickingCompletedWhen IS NOT NULL	
-				AND Orders.OrderId = I.OrderId)	
-	) AS TotalSummForPickedItems
-FROM Sales.Invoices I
-	LEFT JOIN Application.People P ON P.PersonID = I.SalespersonPersonID
-	JOIN
-	(SELECT InvoiceId, SUM(Quantity*UnitPrice) AS TotalSumm
-	FROM Sales.InvoiceLines
-	GROUP BY InvoiceId
-	HAVING SUM(Quantity*UnitPrice) > 27000) AS SalesTotals
-		ON I.InvoiceID = SalesTotals.InvoiceID
-ORDER BY TotalSumm DESC
 
 -- --
 
