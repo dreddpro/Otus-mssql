@@ -1,0 +1,1 @@
+https://github.com/OTUS-MS-SQL-Server/ms-sql-server-2024-03/tree/80e57e882593d03e3a8e7222c35115eb39cf1b85/10-xml-json/demo
